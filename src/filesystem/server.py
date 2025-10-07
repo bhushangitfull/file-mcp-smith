@@ -1,73 +1,79 @@
-"""
-👋 Welcome to your Smithery project!
-To run your server, use "uv run dev"
-To test interactively, use "uv run playground"
-
-You might find this resources useful:
-
-🧑‍💻 MCP's Python SDK (helps you define your server)
-https://github.com/modelcontextprotocol/python-sdk
-"""
-
-from mcp.server.fastmcp import Context, FastMCP
-from pydantic import BaseModel, Field
-
+import os
+import json
+from mcp.server.fastmcp import FastMCP
 from smithery.decorators import smithery
 
-
-# Optional: If you want to receive session-level config from user, define it here
-class ConfigSchema(BaseModel):
-    # access_token: str = Field(..., description="Your access token for authentication")
-    pirate_mode: bool = Field(False, description="Speak like a pirate")
-
-
-# For servers with configuration:
-@smithery.server(config_schema=ConfigSchema)
-# For servers without configuration, simply use:
-# @smithery.server()
+@smithery.server()
 def create_server():
-    """Create and configure the MCP server."""
+    """Create and return a FastMCP server instance with filesystem tools."""
+    
+    server = FastMCP(name="filesystem-mcp-server")
 
-    # Create your FastMCP server as usual
-    server = FastMCP("Say Hello")
-
-    # Add a tool
     @server.tool()
-    def hello(name: str, ctx: Context) -> str:
-        """Say hello to someone."""
-        # Access session-specific config through context
-        session_config = ctx.session_config
+    def read_file(path: str) -> str:
+        """Read contents of a file.
+        
+        Args:
+            path: Path to the file to read
+        """
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            return f"Error reading file: {str(e)}"
 
-        # In real apps, use token for API requests:
-        # requests.get(url, headers={"Authorization": f"Bearer {session_config.access_token}"})
-        # if not session_config.access_token:
-        #     return "Error: Access token required"
+    @server.tool()
+    def write_file(path: str, content: str) -> str:
+        """Write content to a file.
+        
+        Args:
+            path: Path to the file to write
+            content: Content to write to the file
+        """
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return f"Successfully wrote to {path}"
+        except Exception as e:
+            return f"Error writing file: {str(e)}"
 
-        # Create greeting based on pirate mode
-        if session_config.pirate_mode:
-            return f"Ahoy, {name}!"
-        else:
-            return f"Hello, {name}!"
+    @server.tool()
+    def list_directory(path: str = ".") -> str:
+        """List contents of a directory.
+        
+        Args:
+            path: Path to the directory (defaults to current directory)
+        """
+        try:
+            items = os.listdir(path)
+            return json.dumps(items, indent=2)
+        except Exception as e:
+            return f"Error listing directory: {str(e)}"
 
-    # Add a resource
-    @server.resource("history://hello-world")
-    def hello_world() -> str:
-        """The origin story of the famous 'Hello, World' program."""
-        return (
-            '"Hello, World" first appeared in a 1972 Bell Labs memo by '
-            "Brian Kernighan and later became the iconic first program "
-            "for beginners in countless languages."
-        )
+    @server.tool()
+    def create_directory(path: str) -> str:
+        """Create a new directory.
+        
+        Args:
+            path: Path to the directory to create
+        """
+        try:
+            os.makedirs(path, exist_ok=True)
+            return f"Successfully created directory: {path}"
+        except Exception as e:
+            return f"Error creating directory: {str(e)}"
 
-    # Add a prompt
-    @server.prompt()
-    def greet(name: str) -> list:
-        """Generate a greeting prompt."""
-        return [
-            {
-                "role": "user",
-                "content": f"Say hello to {name}",
-            },
-        ]
+    @server.tool()
+    def delete_file(path: str) -> str:
+        """Delete a file.
+        
+        Args:
+            path: Path to the file to delete
+        """
+        try:
+            os.remove(path)
+            return f"Successfully deleted: {path}"
+        except Exception as e:
+            return f"Error deleting file: {str(e)}"
 
     return server
