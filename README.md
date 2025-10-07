@@ -1,5 +1,7 @@
 # filesystem
 
+[![smithery badge](https://smithery.ai/badge/@bhushangitfull/file-mcp-smith)](https://smithery.ai/server/@bhushangitfull/file-mcp-smith)
+
 An MCP server built with [Smithery CLI](https://smithery.ai/docs/getting_started/quickstart_build_python)
 
 ## Prerequisites
@@ -20,6 +22,8 @@ An MCP server built with [Smithery CLI](https://smithery.ai/docs/getting_started
    ```
 
 Try saying "Say hello to John" to test the example tool.
+
+
 
 
 
