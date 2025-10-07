@@ -3,11 +3,11 @@ requires = ["uv_build>=0.8.15,<0.9.0"]
 build-backend = "uv_build"
 
 [project]
-name = "hello-server"
+name = "file-system"
 version = "0.1.0"
-description = "An MCP server built with Smithery"
+description = "An MCP server for file system"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Sujal mane"}
 ]
 
 requires-python = ">=3.10"
